@@ -334,8 +334,8 @@ def main():
 
 
         
-    test_type = "romboid_inv"
-    dataset_path = "/home/corcasta/Documents/ati/dataset"
+    test_type = "full_press"
+    dataset_path = "/home/corcasta/tscalib/dataset_v2"
     csv_name = f"{test_type}_data.csv"
 
     #ati.save_FT(folder_name,'data',i)
@@ -377,34 +377,43 @@ def main():
     print(f"y_shear_locs: {y_shear_locs}")
 
 
-    """
     #****************************************************************************************************************
     #                       This is just to collect sample when the sensor is not being touched
-    fx_list = []
-    fy_list = []
-    fz_list = []
-    counter += 1
-    while counter < 2000:
-        fx, fy, fz = ati.read_FT()
-        fx_list.append(round(fx, 3))
-        fy_list.append(round(fy, 3))
-        fz_list.append(round(fz, 3))
-        print(f"Counter: {counter} \t --------> \t Fx: {fx} \t Fy: {fy} \t Fz: {fz}")
-        save_image(cap, dataset_path, test_type, counter)
-        
-        if counter % 10 == 0:
-            temp_df = pd.DataFrame({"fx": fx_list, "fy": fy_list, "fz": fz_list, "x": np.zeros(len(fx_list)), "y": np.zeros(len(fx_list)), "z": np.zeros(len(fx_list)), "x_shear": np.zeros(len(fx_list)), "y_shear": np.zeros(len(fx_list))})
+    #main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
+    main_df = pd.read_csv(dataset_path + "/labels/" + test_type + "/" + csv_name)
+    desired_instances = 1000
+    iterations = len(np.round(np.arange(0.6, 1.9, 0.02), 2))
+    target_epoch = int(np.round(desired_instances/iterations))
+    epoch = 0
+    instance_counter = 2080
+    while epoch <= target_epoch:
+        print(f"**************Epoch: {epoch}/{target_epoch}**************")
+        for z in np.round(np.arange(0.6, 1.9, 0.02), 2):
+            go2pos("Z", z)
+            # Reading image and saving it in dataset
+            save_image(cap, dataset_path, test_type, instance_counter)
+            fx, fy, fz = ati.read_FT()
+            
+            print(f"Counter: {instance_counter} \t --------> \t x: {0} \t y: {0} \t z: {z} \t --------> \t fx: {round(fx, 3)} \t fy: {round(fy, 3)} \t fz: {round(fz, 3)}")
+            temp_df = pd.DataFrame({"img_name": [test_type + "_img_" + str(instance_counter) + ".jpg"], 
+                                    "fx": [round(fx, 3)], 
+                                    "fy": [round(fy, 3)], 
+                                    "fz": [round(fz, 3)], 
+                                    "x": [0], 
+                                    "y": [0], 
+                                    "z": [z], 
+                                    "x_shear": [0], 
+                                    "y_shear": [0]})
             main_df = pd.concat([main_df, temp_df], ignore_index=True)
-            main_df.to_csv(dataset_path + "/labels/" + test_type + "/" + csv_name)
-            fx_list = []
-            fy_list = []e
-            fz_list = []
-
-        counter += 1
+            main_df.to_csv(dataset_path + "/labels/" + test_type + "/" + csv_name, index=False)
+            instance_counter += 1
+        go2pos("Z", 0)
+        epoch += 1
     #****************************************************************************************************************
+    
+    
+    
     """
-    
-    
     
     #****************************************************************************************************************
     main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
@@ -556,7 +565,7 @@ def main():
             
             
     #****************************************************************************************************************
-    
+    """
    
     """
     i = 0
@@ -601,7 +610,6 @@ def main():
         except KeyboardInterrupt:
             print('end')
     """
-
     go2pos("Z", 0)
     go2pos("X", 0)
     go2pos("Y", 0)
