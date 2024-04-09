@@ -272,13 +272,13 @@ def main():
     ati = ATI('192.168.1.1')
     #print("DEBUG")
 
-    cameras = find_cameras()
-    print("DEBUG: ", len(cameras))
-    cap = cv2.VideoCapture(cameras[0])
-    WHILE_COND = cap.isOpened()
-    print("AFTER DEMO")
-    # set the format into MJPG in the FourCC format
-    cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
+    #cameras = find_cameras()
+    #print("DEBUG: ", len(cameras))
+    #cap = cv2.VideoCapture(cameras[0])
+    #WHILE_COND = cap.isOpened()
+    #print("AFTER DEMO")
+    ## set the format into MJPG in the FourCC format
+    #cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
 
     #time.sleep(5)
 
@@ -334,18 +334,18 @@ def main():
 
 
         
-    test_type = "full_press"
-    dataset_path = "/home/corcasta/tscalib/dataset_v2"
+    test_type = "square "
+    dataset_path = "/home/corcasta/tscalib/dataset_sensor2"
     csv_name = f"{test_type}_data.csv"
 
     #ati.save_FT(folder_name,'data',i)
 
     # ***** SQUARE PARAMS *********
-    #max_x = 20.5              # in mm
-    #max_y = 34.15 #22.15            # in mm
-    #min_z = 1.4             # in mm
-    #max_z = min_z + 0.9 #0.9     # in mm
-    #step_size = 4         # in mm
+    max_x = 25.5              # in mm
+    max_y = 30.15 #22.15            # in mm
+    min_z = 0.4           # in mm
+    max_z = min_z + 1.1  #0.9     # in mm
+    step_size = 4         # in mm
     # ***** SQUARE PARAMS *********
     
     # ***** SPHERE PARAMS *********
@@ -357,11 +357,11 @@ def main():
     # ***** SPHERE PARAMS *********
 
     # ***** ROMBOID PARAMS *********
-    max_x = 20.5              # in mm
-    max_y = 30.15 #22.15            # in mm
-    min_z = 1.8             # in mm
-    max_z = min_z + 1 #0.9     # in mm
-    step_size = 4         # in mm
+    #max_x = 20.5              # in mm
+    #max_y = 30.15 #22.15            # in mm
+    #min_z = 1.8             # in mm
+    #max_z = min_z + 1 #0.9     # in mm
+    #step_size = 4         # in mm
     # ***** ROMBOID PARAMS *********
 
     ati.tare()
@@ -376,9 +376,9 @@ def main():
     print(f"z_locations: {z_locations}")
     print(f"y_shear_locs: {y_shear_locs}")
 
-
+    """
     #****************************************************************************************************************
-    #                       This is just to collect sample when the sensor is not being touched
+    #                       This is just to collect sample when the sensor is  being fully touched
     #main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
     main_df = pd.read_csv(dataset_path + "/labels/" + test_type + "/" + csv_name)
     desired_instances = 1000
@@ -410,10 +410,10 @@ def main():
         go2pos("Z", 0)
         epoch += 1
     #****************************************************************************************************************
-    
-    
-    
     """
+    
+    
+    
     
     #****************************************************************************************************************
     main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
@@ -565,8 +565,9 @@ def main():
             
             
     #****************************************************************************************************************
-    """
+    
    
+    
     """
     i = 0
     while True:
@@ -575,7 +576,7 @@ def main():
         user_input = input("press d to down, u to up: ")
         try:
             if user_input.lower() == 'a':
-                move("X", 20.5)
+                move("X", 25.5)
                 current_Z += dz
                 print(ati.read_FT())
                 print("DDDD")
@@ -610,6 +611,7 @@ def main():
         except KeyboardInterrupt:
             print('end')
     """
+
     go2pos("Z", 0)
     go2pos("X", 0)
     go2pos("Y", 0)
