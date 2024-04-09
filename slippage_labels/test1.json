@@ -1,0 +1,45 @@
+[
+  {
+    "csv_url": "\/data\/upload\/1\/3f97ce99-test_slippage_data.csv",
+    "id": 1,
+    "label": [
+      {
+        "start": 2.5438549518585205,
+        "end": 3.516179323196411,
+        "instant": false,
+        "timeserieslabels": [
+          "slipped"
+        ]
+      },
+      {
+        "start": 3.516179323196411,
+        "end": 5.431317329406738,
+        "instant": false,
+        "timeserieslabels": [
+          "fixed"
+        ]
+      },
+      {
+        "start": 5.431317329406738,
+        "end": 5.821141719818115,
+        "instant": false,
+        "timeserieslabels": [
+          "slipped"
+        ]
+      },
+      {
+        "start": 5.701225757598877,
+        "end": 6.5947535037994385,
+        "instant": false,
+        "timeserieslabels": [
+          "fixed"
+        ]
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 1,
+    "created_at": "2024-04-09T04:30:06.662482Z",
+    "updated_at": "2024-04-09T04:30:06.662497Z",
+    "lead_time": 245.312
+  }
+]
