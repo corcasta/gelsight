@@ -8,7 +8,7 @@ from smart_gripper_pkg.scripts import PKG_DIR
 import time
 
 class Gelsigth:
-    def __init__(self, device="CPU", calib_model="midnet_v2", img_resolution=(255, 255)):
+    def __init__(self, device="CPU", calib_model="midnet_s2_v3", img_resolution=(255, 255)):
         """
         device: type string, device where inference is going to be processed ("CPU", "GPU").
         calib_model: type string, OpenVINO model used for calibration.
@@ -25,6 +25,7 @@ class Gelsigth:
         ##self.cap.set(cv2.CAP_PROP_FPS, 5)
         #self.cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
         self.cap =  WebcamVideoStream(self.__find_cameras()[0]).start()
+        self.FX_B, self.FY_B, self.FZ_B = self.__warmup()
 
     def __del__(self):
         print("Resources released")
@@ -53,6 +54,44 @@ class Gelsigth:
             i -= 1
         return arr
 
+    def __remove_bias(self, fx, fy, fz):
+        fx = fx-self.FX_B
+        fy = fy-self.FY_B
+        fz = fz-self.FZ_B
+        
+        if fx < 0.0:
+            fx = 0.0
+
+        if fy < 0.0:
+            fy = 0.0
+
+        if fz < 0.0:
+            fz = 0.0
+            
+        return fx, fy, fz
+
+    def __warmup(self):
+        print("Warming up Force Sensor...")
+        history_fx = []
+        history_fy = []
+        history_fz = []
+        time_accum = 0
+        while True:
+            start = time.time()
+            fx, fy, fz = self.get_forces(remove_bias=False)            
+            end = time.time()
+            time_accum += end-start
+            # Im using it to calculate an average of the bias
+            history_fx.append(round(fx,3))
+            history_fy.append(round(fy,3))
+            history_fz.append(round(fz,3))
+            if time_accum >= 5:
+                break
+        fx_b = np.mean(history_fx)
+        fy_b = np.mean(history_fy)
+        fz_b = np.mean(history_fz)
+        return fx_b, fy_b, fz_b
+
     def get_image(self):
         #for _ in range(5):
         #ret, img = self.cap.read()
@@ -64,7 +103,7 @@ class Gelsigth:
             #time.sleep(0.1)
         return img
 
-    def get_forces(self):
+    def get_forces(self, remove_bias=True):
         img = self.get_image()
         #plt.imshow(img)
         #plt.show()
@@ -77,7 +116,10 @@ class Gelsigth:
             input_img = input_img[None, :, :, :]
             output = self.__ov_compiled_model(input_img)[0]
             fx, fy, fz = np.squeeze(output) 
-            return np.abs(fx), np.abs(fy), np.abs(fz)
+            fx, fy, fz = np.abs(fx), np.abs(fy), np.abs(fz)
+            if remove_bias:
+                fx, fy, fz = self.__remove_bias(fx, fy, fz)
+            return fx, fy, fz
 
 
 def main():
@@ -87,7 +129,7 @@ def main():
         while True:
             start = time.time()
             fx, fy, fz = sensor.get_forces()
-            mag = np.sqrt(fx**2 + fy**2)
+            mag = np.sqrt(fx**2 + fy**2 + fz**2)
             end = time.time()
             hz = 1/(end-start)
             fps.append(hz)

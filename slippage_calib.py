@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import time 
 
+FX_B = 0.041785184
+FY_B = 0.052113302
+FZ_B = 0.10129064
+
 def remove_bias(fx, fy, fz, fx_b, fy_b, fz_b):
     fx = fx-fx_b
     fy = fy-fy_b
@@ -16,7 +20,7 @@ def remove_bias(fx, fy, fz, fx_b, fy_b, fz_b):
 
     if fz < 0.0:
         fz = 0.0
-
+        
     return fx, fy, fz
 
 def main():
@@ -27,7 +31,7 @@ def main():
     history_fz = []
     history_time = []
 
-    csv_name = "sample_25.csv"
+    csv_name = "sample_40.csv"
 
     #try:
     time_accum = 0
@@ -39,28 +43,28 @@ def main():
         end = time.time()
         time_accum += end-start
         # Im using it to calculate an average of the bias
-        history_fx.append(round(fx,3))
-        history_fy.append(round(fy,3))
-        history_fz.append(round(fz,3))
+        #history_fx.append(round(fx,3))
+        #history_fy.append(round(fy,3))
+        #history_fz.append(round(fz,3))
         print("Time: {:.3f} \t Fx: {:.3f} \t Fy: {:.3f} \t Fz: {:.3f}".format(time_accum, fx, fy, fz))
 
         if time_accum >= 5:
             break
-    fx_b = np.mean(history_fx)
-    fy_b = np.mean(history_fy)
-    fz_b = np.mean(history_fz)
-
-    history_fx = []
-    history_fy = []
-    history_fz = []
-    history_time = []
-
+    #fx_b = np.mean(history_fx)
+    #fy_b = np.mean(history_fy)
+    #fz_b = np.mean(history_fz)
+    #history_fx = []
+    #history_fy = []
+    #history_fz = []
+    #history_time = []
+    #print(f"{fx_b=} \t {fy_b=} \t {fz_b=}")
     time_accum = 0
+
     print("****************** START ********************")
     while True:
         start = time.time()
         fx, fy, fz = sensor.get_forces() 
-        fx, fy, fz = remove_bias(fx, fy, fz, fx_b, fy_b, fz_b)
+        fx, fy, fz = remove_bias(fx, fy, fz, FX_B, FY_B, FZ_B)
         end = time.time()
 
         time_accum += end-start

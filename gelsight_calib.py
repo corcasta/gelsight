@@ -264,7 +264,7 @@ def save_image(cap, dataset_path, test_type, counter):
             return 0
         #frame = resize_crop_mini(frame, imgw, imgh)
         frame = cv2.resize(frame, (255, 255))
-        time.sleep(0.1)
+        #time.sleep(0.1)
     cv2.imwrite(dataset_path + "/images/" + test_type + f"/{test_type}_img_{counter}.jpg", frame)
     #print("Image saved")
 
@@ -272,13 +272,13 @@ def main():
     ati = ATI('192.168.1.1')
     #print("DEBUG")
 
-    #cameras = find_cameras()
-    #print("DEBUG: ", len(cameras))
-    #cap = cv2.VideoCapture(cameras[0])
-    #WHILE_COND = cap.isOpened()
-    #print("AFTER DEMO")
-    ## set the format into MJPG in the FourCC format
-    #cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
+    cameras = find_cameras()
+    print("DEBUG: ", len(cameras))
+    cap = cv2.VideoCapture(cameras[0])
+    WHILE_COND = cap.isOpened()
+    print("AFTER DEMO")
+    # set the format into MJPG in the FourCC format
+    cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
 
     #time.sleep(5)
 
@@ -334,33 +334,33 @@ def main():
 
 
         
-    test_type = "square "
+    test_type = "no_touch"
     dataset_path = "/home/corcasta/tscalib/dataset_sensor2"
     csv_name = f"{test_type}_data.csv"
 
     #ati.save_FT(folder_name,'data',i)
 
     # ***** SQUARE PARAMS *********
-    max_x = 25.5              # in mm
-    max_y = 30.15 #22.15            # in mm
-    min_z = 0.4           # in mm
-    max_z = min_z + 1.1  #0.9     # in mm
-    step_size = 4         # in mm
+    #max_x = 9              # in mm
+    #max_y = 30.15 #22.15            # in mm
+    #min_z = 0.7          # in mm
+    #max_z = min_z + 1.2  #0.9     # in mm
+    #step_size = 4         # in mm
     # ***** SQUARE PARAMS *********
     
     # ***** SPHERE PARAMS *********
-    #max_x = 13              # in mm
-    #max_y = 19.15            # in mm
-    #min_z = 1.7             # in mm
-    #max_z = min_z + 0.9     # in mm
-    #step_size = 3         # in mm
+    max_x = 12              # in mm
+    max_y = 17.15            # in mm
+    min_z = 0.7             # in mm
+    max_z = min_z + 0.8     # in mm
+    step_size = 4         # in mm
     # ***** SPHERE PARAMS *********
 
     # ***** ROMBOID PARAMS *********
-    #max_x = 20.5              # in mm
-    #max_y = 30.15 #22.15            # in mm
-    #min_z = 1.8             # in mm
-    #max_z = min_z + 1 #0.9     # in mm
+    #max_x = 22              # in mm
+    #max_y = 28.15 #22.15            # in mm
+    #min_z = 0.7             # in mm
+    #max_z = min_z + 1.2 #0.9     # in mm
     #step_size = 4         # in mm
     # ***** ROMBOID PARAMS *********
 
@@ -376,20 +376,20 @@ def main():
     print(f"z_locations: {z_locations}")
     print(f"y_shear_locs: {y_shear_locs}")
 
-    """
+    
     #****************************************************************************************************************
     #                       This is just to collect sample when the sensor is  being fully touched
-    #main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
-    main_df = pd.read_csv(dataset_path + "/labels/" + test_type + "/" + csv_name)
-    desired_instances = 1000
-    iterations = len(np.round(np.arange(0.6, 1.9, 0.02), 2))
+    main_df = pd.DataFrame(columns=["img_name", "fx", "fy", "fz", "x", "y", "z", "x_shear", "y_shear"])
+    #main_df = pd.read_csv(dataset_path + "/labels/" + test_type + "/" + csv_name)
+    desired_instances = 2000
+    iterations = len(np.round(np.arange(1, 2.1, 0.02), 2))
     target_epoch = int(np.round(desired_instances/iterations))
     epoch = 0
-    instance_counter = 2080
+    instance_counter = 0
     while epoch <= target_epoch:
         print(f"**************Epoch: {epoch}/{target_epoch}**************")
-        for z in np.round(np.arange(0.6, 1.9, 0.02), 2):
-            go2pos("Z", z)
+        for z in np.round(np.arange(1, 2.1, 0.02), 2):
+            #go2pos("Z", z)
             # Reading image and saving it in dataset
             save_image(cap, dataset_path, test_type, instance_counter)
             fx, fy, fz = ati.read_FT()
@@ -407,12 +407,10 @@ def main():
             main_df = pd.concat([main_df, temp_df], ignore_index=True)
             main_df.to_csv(dataset_path + "/labels/" + test_type + "/" + csv_name, index=False)
             instance_counter += 1
-        go2pos("Z", 0)
+        #go2pos("Z", 0)
         epoch += 1
     #****************************************************************************************************************
     """
-    
-    
     
     
     #****************************************************************************************************************
@@ -565,7 +563,7 @@ def main():
             
             
     #****************************************************************************************************************
-    
+    """
    
     
     """
@@ -576,13 +574,13 @@ def main():
         user_input = input("press d to down, u to up: ")
         try:
             if user_input.lower() == 'a':
-                move("X", 25.5)
+                move("X", 12)
                 current_Z += dz
                 print(ati.read_FT())
                 print("DDDD")
             
             if user_input.lower() == 'b':
-                move("Y", 30.15  )
+                move("Y", 17.15  )
                 current_Z += dz
                 print(ati.read_FT())
 
@@ -611,6 +609,7 @@ def main():
         except KeyboardInterrupt:
             print('end')
     """
+    
 
     go2pos("Z", 0)
     go2pos("X", 0)
