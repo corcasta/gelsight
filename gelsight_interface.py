@@ -1,31 +1,41 @@
 import openvino as ov
 import numpy as np
 import cv2
-from imutils.video import WebcamVideoStream
 import os
+from imutils.video import WebcamVideoStream
 import matplotlib.pyplot as plt
 from smart_gripper_pkg.scripts import PKG_DIR
 import time
 
-class Gelsigth:
+class Gelsight:
     def __init__(self, device="CPU", calib_model="midnet_s2_v3", img_resolution=(255, 255)):
         """
         device: type string, device where inference is going to be processed ("CPU", "GPU").
         calib_model: type string, OpenVINO model used for calibration.
         img_resolution: type tuple (int, int), resolution of output image.
         """
+        # ************* Force Model Params *************
         self.resolution = img_resolution
         self.__core = ov.Core()
         self.__ov_model = self.__core.read_model(model=calib_model+"_static"+".xml")
         self.__ov_compiled_model = self.__core.compile_model(self.__ov_model, device, config={"PERFORMANCE_HINT": "LATENCY"})
-        
-        #self.cap = cv2.VideoCapture(self.__find_cameras()[0])
-        ##self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 255)
-        ##self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 255)
-        ##self.cap.set(cv2.CAP_PROP_FPS, 5)
-        #self.cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc('M','J','P','G'))
         self.cap =  WebcamVideoStream(self.__find_cameras()[0]).start()
         self.FX_B, self.FY_B, self.FZ_B = self.__warmup()
+        # ************* Force Model Params *************
+
+        # ************* Slippage Model Params *************
+        self.__torch_slippage_model = torch.jit.load("slippage_jit_model_v0.pt")
+        # ************* Slippage Model Params *************
+
+    def detect_slippage(self, input_sequence):
+        """
+        input_sequence: type torch.tensor with shape (1, 100, 4) == (batch_size, timesteps, features)
+        returns: index of highest probable class (0 or 1) == (static or slipped)
+        """
+        output = self.__torch_slippage_model(input_sequence)
+        ret, predicted_label = torch.max(output.data, 1)
+        return predicted_label.detach().numpy()
+
 
     def __del__(self):
         print("Resources released")
@@ -42,7 +52,6 @@ class Gelsigth:
             return cameras
         i = 10
         while i >= 0:
-            print(i)
             cap = cv2.VideoCapture(index)
             if cap.read()[0]:       
                 command = 'v4l2-ctl -d ' + str(index) + ' --info'
@@ -91,6 +100,11 @@ class Gelsigth:
         fy_b = np.mean(history_fy)
         fz_b = np.mean(history_fz)
         return fx_b, fy_b, fz_b
+
+
+    def __to_numpy(self, tensor):
+        return tensor.detach().cpu().numpy()[None, :, :] if tensor.requires_grad else tensor.cpu().numpy()[None,:,:]
+
 
     def get_image(self):
         #for _ in range(5):
